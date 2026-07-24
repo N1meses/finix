@@ -68,8 +68,8 @@ in
     services.mdevd.coldplugRules = "-console 0:${toString config.ids.gids.tty} 600 +redirfd -r 0 ${cfg.binaryKeyMap} loadkmap";
 
     services.udev.packages = [
-      (pkgs.writeTextDir "etc/udev/rules.d/loadkmap" ''
-        KERNEL=="console", SUBSYSTEM=="tty", RUN+="${pkgs.busybox}/bin/loadkmap <${cfg.binaryKeyMap}"
+      (pkgs.writeTextDir "etc/udev/rules.d/95-loadkmap.rules" ''
+        KERNEL=="console", SUBSYSTEM=="tty", RUN+="${pkgs.busybox}/bin/sh -c 'exec ${pkgs.busybox}/bin/loadkmap < ${cfg.binaryKeyMap}'"
       '')
     ];
 
