@@ -18,6 +18,11 @@ let
       ''
         loadkeys --bkeymap "${km}" >$out
       '';
+
+  loadkmapScript = pkgs.writeScript "loadkmap-console" ''
+    #!${pkgs.busybox}/bin/sh
+    exec ${pkgs.busybox}/bin/loadkmap < ${cfg.binaryKeyMap}
+  '';
 in
 {
   options = {
@@ -63,15 +68,13 @@ in
     # Include binary keymap in the initramfs.
     boot.initrd.contents = [ { source = cfg.binaryKeyMap; } ];
 
-    # Use the device-manager to load the keymap rather
-    # than injecting somewhere into the early boot script.
-    services.mdevd.coldplugRules = "-console 0:${toString config.ids.gids.tty} 600 +redirfd -r 0 ${cfg.binaryKeyMap} loadkmap";
+    services.mdevd.coldplugRules = "-console 0:${toString config.ids.gids.tty} 600";
 
-    services.udev.packages = [
-      (pkgs.writeTextDir "etc/udev/rules.d/95-loadkmap.rules" ''
-        KERNEL=="console", SUBSYSTEM=="tty", RUN+="${pkgs.busybox}/bin/sh -c 'exec ${pkgs.busybox}/bin/loadkmap < ${cfg.binaryKeyMap}'"
-      '')
-    ];
+    finit.tasks.loadkmap = {
+      description = "load console keymap";
+      conditions = "dev/console";
+      command = loadkmapScript;
+    };
 
     finit.tasks.setvesablank =
       let
