@@ -76,6 +76,12 @@ in
       command = loadkmapScript;
     };
 
+    boot.initrd.finit.tasks.loadkmap = {
+      description = "load console keymap";
+      conditions = "dev/console";
+      command = loadkmapScript;
+    };
+
     finit.tasks.setvesablank =
       let
         value = if cfg.setvesablank then "on" else "off";
